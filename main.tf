@@ -12,7 +12,7 @@ module "vpc" {
   azs              = ["${var.region}a", "${var.region}b"]
   private_subnets  = var.private_subnet_cidr_list
   public_subnets   = var.public_subnet_cidr_list
-  database_subnets = var.databse_subnet_cidr_list
+  database_subnets = var.database_subnet_cidr_list
 
   enable_ipv6             = false
   create_igw              = true
@@ -88,7 +88,7 @@ module "vpc_ssm_endpoint" {
 # # Has to be a Gateway for S3
 resource "aws_vpc_endpoint" "s3_gateway" {
   vpc_id          = module.vpc.vpc_id
-  service_name    = "com.amazonaws.${var.aws_region}.s3"
+  service_name    = "com.amazonaws.${var.region}.s3"
   route_table_ids = module.vpc.private_route_table_ids
   tags = {
     Name = "vpc-s3-gateway-vpc-endpoint"
