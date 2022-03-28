@@ -1,58 +1,96 @@
-# Set up providers
-provider "aws" {
-  region  = var.region
-}
-
-# The above is the default provider.
-# This one's for when we need us-east-1, like for CloudFront certs.
-# https://www.terraform.io/docs/configuration/providers.html
-provider "aws" {
-  region = "us-east-1"
-  alias = "us-east-1"
-}
-
-
-
-# ==========================================================
-# Networking
-# ==========================================================
+################################################################################
+# VPC Module
+################################################################################
 module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "3.0.0"
 
-  name = "${var.NameTag}-${var.Environment}-vpc"
-  cidr = "${var.vpc_cidr_block}"
 
-  azs             = [var.az_1, var.az_2]
-  private_subnets = [var.aws_public1_cidr_block, var.aws_public2_cidr_block]
-  public_subnets  = [var.aws_private1_cidr_block, var.aws_private2_cidr_block]
+  name = "${var.environment}vpc"
+  cidr = var.vpc_cidr
 
-  enable_nat_gateway = true
-  enable_vpn_gateway = true
+  azs              = ["${var.region}a", "${var.region}b"]
+  private_subnets  = var.private_subnet_cidr_list
+  public_subnets   = var.public_subnet_cidr_list
+  database_subnets = var.databse_subnet_cidr_list
+
+  enable_ipv6             = false
+  create_igw              = true
+  map_public_ip_on_launch = false
+
+  enable_nat_gateway   = false
+  single_nat_gateway   = false
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
 
   tags = {
-    CreatedBy = "https://github.com/FoxyCart/foxy-terraform-n8n"
-    Environment = var.Environment
+    Owner       = "user"
+    Environment = "dev"
+  }
+
+  vpc_tags = {
+    Name = "vpc"
+  }
+
+  private_subnet_tags = {
+
+    Name = "vpc-private-subnet"
+  }
+  public_subnet_tags = {
+
+    Name = "vpc-workload-subnet"
   }
 }
 
-# module "alb" {}
-# module "cloudfront" {} # optional
+################################################################################
+# VPC Module Spoke VPC  - SSM Endpoint
+################################################################################
+module "vpc_ssm_endpoint" {
 
+  source = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
+  vpc_id = module.vpc.vpc_id
 
-# ==========================================================
-# Databases
-# ==========================================================
-# module "mysql" {} # Aurora MySQL cluster
-# module "redis" {} # ElastiCache Redis (cluster-mode enabled)
+  security_group_ids = [module.vpc.default_security_group_id]
+  endpoints = {
+    s3 = {
+      service    = "s3"
+      subnet_ids = module.vpc.private_subnets
+      tags       = { Name = "vpc-s3-vpc-endpoint" }
+    },
+    ssm = {
+      service             = "ssm"
+      private_dns_enabled = true
+      subnet_ids          = module.vpc.private_subnets
+      tags                = { Name = "vpc-ssm-vpc-endpoint" }
+    },
+    ssmmessages = {
+      service             = "ssmmessages"
+      private_dns_enabled = true,
+      subnet_ids          = module.vpc.private_subnets
+      tags                = { Name = "vpc-ssmmessages-vpc-endpoint" }
+    },
+    ec2messages = {
+      service             = "ec2messages",
+      private_dns_enabled = true,
+      subnet_ids          = module.vpc.private_subnets
+      tags                = { Name = "vpc-ec2messages-vpc-endpoint" }
+    },
+    efs = {
+      service             = "elasticfilesystem",
+      private_dns_enabled = true,
+      subnet_ids          = module.vpc.private_subnets
+      tags                = { Name = "vpc-efs-vpc-endpoint" }
+    }
+  }
+}
 
-
-# ==========================================================
-# ECS
-# ==========================================================
-# module "" {} # ECS, Services, Tasks, etc., in one or many modules
-
-
-# ==========================================================
-# CI/CD
-# ==========================================================
-# module "" {} # CodePipeline, CodeBuild, CodeDeploy, etc., in one or many modules
+# # Has to be a Gateway for S3
+resource "aws_vpc_endpoint" "s3_gateway" {
+  vpc_id          = module.vpc.vpc_id
+  service_name    = "com.amazonaws.${var.aws_region}.s3"
+  route_table_ids = module.vpc.private_route_table_ids
+  tags = {
+    Name = "vpc-s3-gateway-vpc-endpoint"
+  }
+}
