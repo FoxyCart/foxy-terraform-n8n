@@ -112,7 +112,7 @@ resource "random_password" "aurora_mysql_master_password" {
 ################################################################################
 
 resource "aws_secretsmanager_secret" "aurora_secretmanager_secret" {
-  name = "${var.environment}-aurora-secret-manager"
+  name = "${var.environment}-aurora-secret-manager-${random_id.random_id.hex}"
 }
 
 
@@ -274,3 +274,7 @@ resource "aws_iam_policy" "rds_monitoring_policy" {
 }
 
 
+
+################################################################################
+# Elastic Cache Cluster  - Redis
+################################################################################
