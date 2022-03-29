@@ -1,34 +1,31 @@
-variable "NameTag" {}
-variable "Environment" {}
+variable "environment" {
+  description = "AWS Environment name"
+  default     = "dev"
 
+}
 variable "region" {}
-variable "az_1" {}
-variable "az_2" {}
 
-variable "vpc_cidr_block" {}
-variable "aws_public1_cidr_block" {}
-variable "aws_public2_cidr_block" {}
-variable "aws_private1_cidr_block" {}
-variable "aws_private2_cidr_block" {}
+variable "vpc_cidr" {
+  description = "AWS VPC CIDR Range"
+  default     = "10.0.0.0/16"
+
+}
+
+variable "private_subnet_cidr_list" {
+  description = "List of Private Subnet CIDR"
+  default     = ["10.0.1.0/24", "10.0.2.0/24", ]
+
+}
+
+variable "public_subnet_cidr_list" {
+  description = "List of Public Subnet CIDR"
+  default     = ["10.0.101.0/24", "10.0.102.0/24", ]
+
+}
+
+variable "database_subnet_cidr_list" {
+  description = "List of Databse Subnet CIDR"
+  default     = ["10.0.3.0/24", "10.0.103.0/24"]
 
 
-# MySQL
-variable "mysql_db_name" {}
-variable "mysql_db_user" {}
-variable "mysql_db_password" {}
-variable "mysql_instance_type" {}
-
-
-# REDIS
-variable "redis_node_type" {}
-variable "redis_replicas_per_node_group" {}
-variable "redis_num_node_groups" {}
-variable "redis_engine_version" {}
-
-
-# ECS & FARGATE
-variable "ecs_desired_count" {}
-variable "ecs_maximum_count" {}
-variable "ecs_deployment_minimum_healthy_percent" {}
-variable "ecs_task_cpu" {}
-variable "ecs_task_memory" {}
+}
