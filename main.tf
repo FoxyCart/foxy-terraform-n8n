@@ -112,7 +112,7 @@ resource "random_password" "aurora_mysql_master_password" {
 ################################################################################
 
 resource "aws_secretsmanager_secret" "aurora_secretmanager_secret" {
-  name = "${var.environment}-aurora-secret-manager"
+  name = "${var.environment}-aurora-secret-manager-${random_id.random_id.hex}"
 }
 
 
@@ -274,3 +274,50 @@ resource "aws_iam_policy" "rds_monitoring_policy" {
 }
 
 
+
+################################################################################
+# Elastic Cache Cluster  - Redis
+################################################################################
+module "redis" {
+  source  = "umotif-public/elasticache-redis/aws"
+  version = "3.0.0"
+
+  name_prefix        = "${var.environment}-redis-clustere"
+  num_cache_clusters = 2
+  node_type          = "cache.t3.small"
+
+  cluster_mode_enabled    = true
+  replicas_per_node_group = 1
+  num_node_groups         = 1
+
+  engine_version           = "6.x"
+  port                     = 6379
+  maintenance_window       = "mon:03:00-mon:04:00"
+  snapshot_window          = "04:00-06:00"
+  snapshot_retention_limit = 7
+
+  automatic_failover_enabled = true
+
+  at_rest_encryption_enabled = false
+  transit_encryption_enabled = false
+
+  apply_immediately = true
+  family            = "redis6.x"
+  description       = "Alpha Build elasticache redis."
+
+  subnet_ids = module.vpc.database_subnets
+  vpc_id     = module.vpc.vpc_id
+
+  ingress_cidr_blocks = [module.vpc.vpc_cidr_block]
+
+  parameter = [
+    {
+      name  = "repl-backlog-size"
+      value = "16384"
+    }
+  ]
+
+  tags = {
+    Project = "Test"
+  }
+}
