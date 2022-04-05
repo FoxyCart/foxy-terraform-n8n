@@ -26,3 +26,28 @@ module "redis_security_group" {
   #   # ECS Container SG Security Group IP
   # ]
 }
+
+
+
+module "alb_security_group" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> 4.0"
+
+  name        = "${var.environment}-alb-sg"
+  description = "Security group for example usage with ALB"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress_cidr_blocks = ["0.0.0.0/0"]
+  ingress_rules       = ["http-80-tcp"]
+  egress_rules        = ["all-all"]
+}
+
+
+resource "aws_security_group_rule" "test_sg_ingress" {
+  security_group_id        = module.alb_security_group.security_group_id
+  type                     = "ingress"
+  protocol                 = "tcp"
+  from_port                = 5678
+  to_port                  = 5678
+  source_security_group_id = module.ecs-fargate.service_sg_id
+}

@@ -6,7 +6,7 @@ module "vpc" {
   version = "3.0.0"
 
 
-  name = "${var.environment}vpc"
+  name = "${var.environment}-vpc"
   cidr = var.vpc_cidr
 
   azs              = ["${var.region}a", "${var.region}b"]
@@ -18,7 +18,7 @@ module "vpc" {
   create_igw              = true
   map_public_ip_on_launch = false
 
-  enable_nat_gateway   = false
+  enable_nat_gateway   = true
   single_nat_gateway   = false
   enable_dns_hostnames = true
   enable_dns_support   = true
@@ -41,6 +41,10 @@ module "vpc" {
 
     Name = "vpc-workload-subnet"
   }
+
+  database_subnet_tags = {
+    Name = "vpc-database-subnet"
+  }
 }
 
 ################################################################################
@@ -48,7 +52,9 @@ module "vpc" {
 ################################################################################
 module "vpc_ssm_endpoint" {
 
-  source = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
+  source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
+  version = "3.0.0"
+
   vpc_id = module.vpc.vpc_id
 
   security_group_ids = [module.vpc.default_security_group_id]
@@ -132,7 +138,7 @@ resource "aws_ssm_parameter" "aurora_ssm_parameter" {
   }
 }
 
-################################################################################
+# ################################################################################
 module "aurora" {
   source  = "terraform-aws-modules/rds-aurora/aws"
   version = "~> 6.0"
@@ -321,3 +327,35 @@ module "redis" {
     Project = "Test"
   }
 }
+
+
+################################################################################
+# Application Load Balancer 
+################################################################################
+module "alb" {
+  source  = "terraform-aws-modules/alb/aws"
+  version = "6.8.0"
+
+  name               = "${var.environment}-public-alb"
+  load_balancer_type = "application"
+  vpc_id             = module.vpc.vpc_id
+  subnets            = module.vpc.public_subnets
+  security_groups = [
+    module.alb_security_group.security_group_id
+  ]
+
+
+}
+
+resource "aws_lb_listener" "alb_80" {
+  load_balancer_arn = module.alb.lb_arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = module.ecs-fargate.target_group_arn[0]
+  }
+}
+
+
