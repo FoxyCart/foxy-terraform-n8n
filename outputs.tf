@@ -11,3 +11,8 @@ output "tg" {
   value = module.ecs-fargate.target_group_arn[0]
 
 }
+
+output "ecr_name" {
+  value = split("/", aws_ecr_repository.n8n_ecr.arn)[1]
+
+}
