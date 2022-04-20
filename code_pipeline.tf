@@ -1,84 +1,191 @@
-module "s3_bucket_code_build" {
-  source = "terraform-aws-modules/s3-bucket/aws"
-
-  bucket = "code-build-s3-bucket-${random_id.random_id.hex}"
-  acl    = "private"
-
-  versioning = {
-    enabled = false
-  }
-
+locals {
+  github_token  = ""
+  github_owner  = "msharma24"
+  github_repo   = "foxy-terraform-n8n"
+  github_branch = "main"
 }
 
+data "aws_iam_policy_document" "assume_by_pipeline" {
+  statement {
+    sid     = "AllowAssumeByPipeline"
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
 
-# CodeBuild
-resource "aws_codebuild_project" "n8n_codebuild_project" {
-  name          = "build-n8n-container"
-  description   = "lorem ipsum"
-  build_timeout = 60
-  service_role  = module.codebuild_admin_iam_assumable_role.iam_role_arn
-
-  artifacts {
-    type = "NO_ARTIFACTS"
-  }
-
-  environment {
-    compute_type                = "BUILD_GENERAL1_SMALL"
-    image                       = "aws/codebuild/standard:5.0"
-    type                        = "LINUX_CONTAINER"
-    image_pull_credentials_type = "CODEBUILD"
-    privileged_mode             = true
-
-    environment_variable {
-      name  = "AWS_DEFAULT_REGION"
-      value = data.aws_region.current.id
-      type  = "PLAINTEXT"
-
-    }
-
-    environment_variable {
-      name  = "AWS_ACCOUNT_ID"
-      value = data.aws_caller_identity.current.account_id
-      type  = "PLAINTEXT"
-    }
-
-    environment_variable {
-      name  = "IMAGE_TAG"
-      value = "latest"
-      type  = "PLAINTEXT"
-    }
-
-    environment_variable {
-      name  = "IMAGE_REPO_NAME"
-      value = split("/", aws_ecr_repository.n8n_ecr.arn)[1]
-      type  = "PLAINTEXT"
-
-    }
-
-
-  }
-
-  source {
-    buildspec       = file("${path.module}/buildspec.yml")
-    type            = "GITHUB"
-    location        = "https://github.com/msharma24/foxy-terraform-n8n.git"
-    git_clone_depth = 1
-  }
-
-  logs_config {
-    cloudwatch_logs {
-      group_name = module.codebuild_log_group.cloudwatch_log_group_name
+    principals {
+      type        = "Service"
+      identifiers = ["codepipeline.amazonaws.com"]
     }
   }
-
 }
 
+resource "aws_iam_role" "pipeline" {
+  name               = "${var.environment}-pipeline-ecs-service-role-${random_id.random_id.hex}"
+  assume_role_policy = data.aws_iam_policy_document.assume_by_pipeline.json
+}
 
-module "codebuild_log_group" {
-  source  = "terraform-aws-modules/cloudwatch/aws//modules/log-group"
-  version = "3.0.0"
+data "aws_iam_policy_document" "pipeline" {
+  statement {
+    sid    = "AllowS3"
+    effect = "Allow"
 
-  name              = "codebuild_log_group_${random_id.random_id.hex}"
-  retention_in_days = 7
+    actions = [
+      "s3:GetObject",
+      "s3:ListBucket",
+      "s3:PutObject",
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "AllowECR"
+    effect = "Allow"
+
+    actions   = ["ecr:DescribeImages"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "AllowCodebuild"
+    effect = "Allow"
+
+    actions = [
+      "codebuild:BatchGetBuilds",
+      "codebuild:StartBuild"
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "AllowCodedepoloy"
+    effect = "Allow"
+
+    actions = [
+      "codedeploy:CreateDeployment",
+      "codedeploy:GetApplication",
+      "codedeploy:GetApplicationRevision",
+      "codedeploy:GetDeployment",
+      "codedeploy:GetDeploymentConfig",
+      "codedeploy:RegisterApplicationRevision"
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "AllowCodeStarConnection"
+    effect = "Allow"
+    actions = [
+      "codestar-connections:UseConnection"
+    ]
+    resources = [
+      aws_codestarconnections_connection.github_connection.arn
+    ]
+  }
+
+
+  statement {
+    sid    = "AllowResources"
+    effect = "Allow"
+
+    actions = [
+      "elasticbeanstalk:*",
+      "ec2:*",
+      "elasticloadbalancing:*",
+      "autoscaling:*",
+      "cloudwatch:*",
+      "s3:*",
+      "sns:*",
+      "cloudformation:*",
+      "rds:*",
+      "sqs:*",
+      "ecs:*",
+      "opsworks:*",
+      "codestar:*",
+      "devicefarm:*",
+      "servicecatalog:*",
+      "iam:PassRole"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_s3_bucket" "codepipeline_bucket" {
+  bucket = "${var.environment}-codepipeline-bucket-${random_id.random_id.hex}"
+
+}
+resource "aws_iam_role_policy" "pipeline" {
+  role   = aws_iam_role.pipeline.name
+  policy = data.aws_iam_policy_document.pipeline.json
+}
+
+resource "aws_codestarconnections_connection" "github_connection" {
+  name          = "github_connection-connection"
+  provider_type = "GitHub"
+}
+
+resource "aws_codepipeline" "codepipeline" {
+  name     = "tf-test-pipeline"
+  role_arn = aws_iam_role.pipeline.arn
+
+  artifact_store {
+    location = aws_s3_bucket.codepipeline_bucket.bucket
+    type     = "S3"
+  }
+
+  stage {
+    name = "Source"
+    action {
+      name             = "Source"
+      category         = "Source"
+      owner            = "AWS"
+      provider         = "CodeStarSourceConnection"
+      run_order        = "1"
+      output_artifacts = ["SourceOutput"]
+      version          = "1"
+      configuration = {
+        ConnectionArn    = aws_codestarconnections_connection.github_connection.arn
+        FullRepositoryId = "msharma24/foxy-terraform-n8n"
+        BranchName       = local.github_branch
+      }
+
+    }
+  }
+
+  stage {
+    name = "Build"
+    action {
+      name             = "Build"
+      category         = "Build"
+      owner            = "AWS"
+      version          = "1"
+      provider         = "CodeBuild"
+      input_artifacts  = ["SourceOutput"]
+      output_artifacts = ["BuildOutput"]
+      run_order        = "1"
+      configuration = {
+        ProjectName = aws_codebuild_project.n8n_codebuild_project.id
+      }
+
+    }
+  }
+
+  stage {
+    name = "Deploy"
+    action {
+      name            = "Deploy"
+      category        = "Deploy"
+      owner           = "AWS"
+      version         = 1
+      provider        = "ECS"
+      input_artifacts = ["BuildOutput"]
+      configuration = {
+        ClusterName       = aws_ecs_cluster.ecs_cluster.id
+        ServiceName       = module.ecs-fargate.service_name
+        FileName          = "imagedefinitions.json"
+        DeploymentTimeout = "15"
+
+      }
+    }
+  }
 
 }
