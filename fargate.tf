@@ -41,14 +41,17 @@ module "ecs-fargate" {
   depends_on = [
     module.alb
   ]
+
 }
 
+resource "aws_security_group_rule" "sg_rule_ecs" {
+  security_group_id = module.ecs-fargate.service_sg_id
+  type              = "ingress"
+  from_port         = 0
+  to_port           = 65535
+  protocol          = "tcp"
+  #cidr_blocks       = [module.vpc.vpc_cidr_block]
+  source_security_group_id = module.alb_security_group.security_group_id
 
 
-
-
-
-
-
-
-
+}

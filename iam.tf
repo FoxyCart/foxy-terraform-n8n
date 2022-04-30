@@ -18,6 +18,7 @@ module "codebuild_admin_iam_assumable_role" {
   custom_role_policy_arns = [
     "arn:aws:iam::aws:policy/AWSCodeBuildAdminAccess",
     "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess",
+    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
     "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess",
     module.codebuild_ecr_iam_policy.arn
   ]
