@@ -35,7 +35,7 @@ phases:
        - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
   build:
     commands:
-       - Builld started on `date`
+       - echo Build started on `date`
        - cd docker/n8n-debian
        - docker build --build-arg N8N_VERSION=latest  -t $IMAGE_REPO_NAME:$IMAGE_TAG .
        - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG      
