@@ -221,7 +221,7 @@ resource "aws_rds_cluster_parameter_group" "db_parameter_group" {
 
 
 resource "aws_iam_role" "db_monitoring_role" {
-  description = "Monitor ESB database"
+  description = "DB Monitoring Role"
   name        = "db_monitoring_role-${random_id.random_id.hex}"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
