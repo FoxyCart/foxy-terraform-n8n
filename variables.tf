@@ -90,3 +90,10 @@ variable "aurora_backup_window" {
   default     = "15:00-17:00"
   type        = string
 }
+
+variable "source_repository" {
+  description = "Project Repository URL"
+  default     = "https://github.com/FoxyCart/foxy-terraform-n8n"
+  type        = string
+
+}

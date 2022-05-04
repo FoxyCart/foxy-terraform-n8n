@@ -24,14 +24,7 @@ module "vpc" {
   enable_dns_support   = true
 
 
-  tags = {
-    Owner       = "user"
-    Environment = "dev"
-  }
-
-  vpc_tags = {
-    Name = "vpc"
-  }
+  tags = merge(local.common_tags, {})
 
   private_subnet_tags = {
 
@@ -62,31 +55,32 @@ module "vpc_ssm_endpoint" {
     s3 = {
       service    = "s3"
       subnet_ids = module.vpc.private_subnets
-      tags       = { Name = "vpc-s3-vpc-endpoint" }
+      tags       = merge(local.common_tags, { Name = "vpc-s3-endpoint" })
     },
     ssm = {
       service             = "ssm"
       private_dns_enabled = true
       subnet_ids          = module.vpc.private_subnets
       tags                = { Name = "vpc-ssm-vpc-endpoint" }
+      tags                = merge(local.common_tags, { Name = "vpc-ssm-endpoint" })
     },
     ssmmessages = {
       service             = "ssmmessages"
       private_dns_enabled = true,
       subnet_ids          = module.vpc.private_subnets
-      tags                = { Name = "vpc-ssmmessages-vpc-endpoint" }
+      tags                = merge(local.common_tags, { Name = "vpc-ssm-messages-endpoint" })
     },
     ec2messages = {
       service             = "ec2messages",
       private_dns_enabled = true,
       subnet_ids          = module.vpc.private_subnets
-      tags                = { Name = "vpc-ec2messages-vpc-endpoint" }
+      tags                = merge(local.common_tags, { Name = "vpc-ssm-ec2-messages-endpoint" })
     },
     efs = {
       service             = "elasticfilesystem",
       private_dns_enabled = true,
       subnet_ids          = module.vpc.private_subnets
-      tags                = { Name = "vpc-efs-vpc-endpoint" }
+      tags                = merge(local.common_tags, { Name = "vpc-ssm-efs-endpoint" })
     }
   }
 }
@@ -96,9 +90,9 @@ resource "aws_vpc_endpoint" "s3_gateway" {
   vpc_id          = module.vpc.vpc_id
   service_name    = "com.amazonaws.${var.region}.s3"
   route_table_ids = module.vpc.private_route_table_ids
-  tags = {
+  tags = merge(local.common_tags, {
     Name = "vpc-s3-gateway-vpc-endpoint"
-  }
+  })
 }
 
 
@@ -133,9 +127,9 @@ resource "aws_ssm_parameter" "aurora_ssm_parameter" {
   description = "Aurora MySQL cluster master password"
   type        = "SecureString"
   value       = random_password.aurora_mysql_master_password.result
-  tags = {
+  tags = merge(local.common_tags, {
     "Name" = format("%s-ssm-paramter", var.environment)
-  }
+  })
 }
 
 # ################################################################################
@@ -182,11 +176,7 @@ module "aurora" {
   apply_immediately               = true
   skip_final_snapshot             = true
 
-  tags = {
-    Owner       = "user" #TODO what tag
-    Environment = var.environment
-
-  }
+  tags = merge(local.common_tags, {})
 }
 
 resource "aws_db_parameter_group" "db_parameter_group" {
@@ -194,9 +184,7 @@ resource "aws_db_parameter_group" "db_parameter_group" {
   family      = "aurora-mysql5.7"
   description = "${var.environment}-aurora-57-db-parameter-group"
 
-  tags = {
-    Environment = var.environment
-  }
+  tags = merge(local.common_tags, {})
 }
 
 resource "aws_rds_cluster_parameter_group" "db_parameter_group" {
@@ -214,9 +202,7 @@ resource "aws_rds_cluster_parameter_group" "db_parameter_group" {
     value = "utf8mb4"
   }
 
-  tags = {
-    Environment = var.environment
-  }
+  tags = merge(local.common_tags, {})
 }
 
 
@@ -236,10 +222,8 @@ resource "aws_iam_role" "db_monitoring_role" {
     ]
   })
   managed_policy_arns = [aws_iam_policy.rds_monitoring_policy.arn]
-  tags = {
-    Owner       = "user" #TODO what tag
-    Environment = var.environment
-  }
+  tags = merge(local.common_tags, {
+  })
 }
 
 resource "aws_iam_policy" "rds_monitoring_policy" {
@@ -273,9 +257,8 @@ resource "aws_iam_policy" "rds_monitoring_policy" {
       }
     ]
   })
-  tags = {
-    Environment = var.environment
-  }
+  tags = merge(local.common_tags, {
+  })
 
 }
 
@@ -323,9 +306,8 @@ module "redis" {
     }
   ]
 
-  tags = {
-    Project = "Test"
-  }
+  tags = merge(local.common_tags, {
+  })
 }
 
 
@@ -344,6 +326,7 @@ module "alb" {
     module.alb_security_group.security_group_id
   ]
 
+  tags = merge(local.common_tags, {})
 
 }
 
