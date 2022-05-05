@@ -8,6 +8,10 @@ module "mysql_security_group" {
 
   auto_ingress_with_self = []
   ingress_cidr_blocks    = [module.vpc.vpc_cidr_block]
+
+
+  tags = merge(local.common_tags, {})
+
 }
 
 
@@ -22,9 +26,7 @@ module "redis_security_group" {
   auto_ingress_with_self = []
   ingress_cidr_blocks    = [module.vpc.vpc_cidr_block]
 
-  # ingress_with_source_security_group_id = [
-  #   # ECS Container SG Security Group IP
-  # ]
+  tags = merge(local.common_tags, {})
 }
 
 
@@ -34,12 +36,15 @@ module "alb_security_group" {
   version = "~> 4.0"
 
   name        = "${var.environment}-alb-sg"
-  description = "Security group for example usage with ALB"
+  description = "Security group for usage with ALB"
   vpc_id      = module.vpc.vpc_id
 
   ingress_cidr_blocks = ["0.0.0.0/0"]
   ingress_rules       = ["http-80-tcp"]
   egress_rules        = ["all-all"]
+
+
+  tags = merge(local.common_tags, {})
 }
 
 

@@ -7,7 +7,7 @@ output "aurora_cluster_arn" {
   value = module.aurora.cluster_arn
 }
 
-output "tg" {
+output "target_group_arn" {
   value = module.ecs-fargate.target_group_arn[0]
 
 }

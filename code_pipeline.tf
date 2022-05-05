@@ -1,10 +1,3 @@
-locals {
-  github_token  = ""
-  github_owner  = "msharma24"
-  github_repo   = "foxy-terraform-n8n"
-  github_branch = "main"
-}
-
 data "aws_iam_policy_document" "assume_by_pipeline" {
   statement {
     sid     = "AllowAssumeByPipeline"
@@ -78,7 +71,7 @@ data "aws_iam_policy_document" "pipeline" {
       "codestar-connections:UseConnection"
     ]
     resources = [
-      aws_codestarconnections_connection.github_connection.arn
+      local.github_connection_arn
     ]
   }
 
@@ -118,13 +111,14 @@ resource "aws_iam_role_policy" "pipeline" {
   policy = data.aws_iam_policy_document.pipeline.json
 }
 
-resource "aws_codestarconnections_connection" "github_connection" {
-  name          = "github_connection-connection"
-  provider_type = "GitHub"
-}
+# -- Creates new github connection
+# resource "aws_codestarconnections_connection" "github_connection" {
+#   name          = "github_connection-connection"
+#   provider_type = "GitHub"
+# }
 
 resource "aws_codepipeline" "codepipeline" {
-  name     = "tf-test-pipeline"
+  name     = "n8n-codebuild-pipeline"
   role_arn = aws_iam_role.pipeline.arn
 
   artifact_store {
@@ -143,8 +137,8 @@ resource "aws_codepipeline" "codepipeline" {
       output_artifacts = ["SourceOutput"]
       version          = "1"
       configuration = {
-        ConnectionArn    = aws_codestarconnections_connection.github_connection.arn
-        FullRepositoryId = "msharma24/foxy-terraform-n8n"
+        ConnectionArn    = local.github_connection_arn
+        FullRepositoryId = "FoxyCart/foxy-terraform-n8n"
         BranchName       = local.github_branch
       }
 

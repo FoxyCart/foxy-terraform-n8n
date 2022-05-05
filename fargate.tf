@@ -26,7 +26,7 @@ module "ecs-fargate" {
 
   target_groups = [
     {
-      target_group_name = "ecs-fargate-example"
+      target_group_name = "ecs-fargate-n8n-tg"
       container_port    = 5678
 
     }

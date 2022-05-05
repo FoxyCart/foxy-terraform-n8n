@@ -8,6 +8,9 @@ module "s3_bucket_code_build" {
     enabled = true
   }
 
+
+  tags = merge(local.common_tags, {})
+
 }
 
 
@@ -79,6 +82,9 @@ resource "aws_codebuild_project" "n8n_codebuild_project" {
     }
   }
 
+
+  tags = merge(local.common_tags, {})
+
 }
 
 module "codebuild_log_group" {
@@ -88,7 +94,8 @@ module "codebuild_log_group" {
   name              = "codebuild_log_group_${random_id.random_id.hex}"
   retention_in_days = 7
 
-}
 
-# Code pipeline
+  tags = merge(local.common_tags, {})
+
+}
 
