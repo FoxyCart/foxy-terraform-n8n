@@ -61,7 +61,6 @@ module "vpc_ssm_endpoint" {
       service             = "ssm"
       private_dns_enabled = true
       subnet_ids          = module.vpc.private_subnets
-      tags                = { Name = "vpc-ssm-vpc-endpoint" }
       tags                = merge(local.common_tags, { Name = "vpc-ssm-endpoint" })
     },
     ssmmessages = {
