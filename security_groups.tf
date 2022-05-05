@@ -36,7 +36,7 @@ module "alb_security_group" {
   version = "~> 4.0"
 
   name        = "${var.environment}-alb-sg"
-  description = "Security group for example usage with ALB"
+  description = "Security group for usage with ALB"
   vpc_id      = module.vpc.vpc_id
 
   ingress_cidr_blocks = ["0.0.0.0/0"]
