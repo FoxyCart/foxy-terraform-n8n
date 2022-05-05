@@ -47,10 +47,8 @@ module "codebuild_ecr_iam_policy" {
                 "ecr:DescribeImageReplicationStatus",
                 "ecr:ListTagsForResource",
                 "ecr:UploadLayerPart",
-                "ecr:BatchDeleteImage",
                 "ecr:ListImages",
                 "ecr:BatchGetRepositoryScanningConfiguration",
-                "ecr:DeleteRepository",
                 "ecr:CompleteLayerUpload",
                 "ecr:TagResource",
                 "ecr:DescribeRepositories",
@@ -62,16 +60,14 @@ module "codebuild_ecr_iam_policy" {
                 "ecr:GetLifecyclePolicyPreview",
                 "ecr:PutImageScanningConfiguration",
                 "ecr:GetDownloadUrlForLayer",
-                "ecr:DeleteLifecyclePolicy",
                 "ecr:PutImage",
                 "ecr:UntagResource",
                 "ecr:BatchGetImage",
                 "ecr:DescribeImages",
                 "ecr:StartLifecyclePolicyPreview",
                 "ecr:InitiateLayerUpload",
-                "ecr:GetRepositoryPolicy"
             ],
-            "Resource": "arn:aws:ecr:*:185203724531:repository/*"
+            "Resource": "arn:aws:ecr:*:${local.account_id}:repository/*"
         },
         {
             "Sid": "VisualEditor1",
@@ -95,7 +91,5 @@ module "codebuild_ecr_iam_policy" {
 }
 EOF
 
-  tags = {
-    PolicyDescription = "Policy created using heredoc policy"
-  }
+  tags = merge(local.common_tags, {})
 }

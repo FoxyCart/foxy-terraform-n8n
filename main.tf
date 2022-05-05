@@ -90,6 +90,7 @@ resource "aws_vpc_endpoint" "s3_gateway" {
   vpc_id          = module.vpc.vpc_id
   service_name    = "com.amazonaws.${var.region}.s3"
   route_table_ids = module.vpc.private_route_table_ids
+
   tags = merge(local.common_tags, {
     Name = "vpc-s3-gateway-vpc-endpoint"
   })
@@ -127,6 +128,7 @@ resource "aws_ssm_parameter" "aurora_ssm_parameter" {
   description = "Aurora MySQL cluster master password"
   type        = "SecureString"
   value       = random_password.aurora_mysql_master_password.result
+
   tags = merge(local.common_tags, {
     "Name" = format("%s-ssm-paramter", var.environment)
   })
@@ -339,6 +341,8 @@ resource "aws_lb_listener" "alb_80" {
     type             = "forward"
     target_group_arn = module.ecs-fargate.target_group_arn[0]
   }
+
+  tags = merge(local.common_tags, {})
 }
 
 
