@@ -65,7 +65,7 @@ module "codebuild_ecr_iam_policy" {
                 "ecr:BatchGetImage",
                 "ecr:DescribeImages",
                 "ecr:StartLifecyclePolicyPreview",
-                "ecr:InitiateLayerUpload",
+                "ecr:InitiateLayerUpload"
             ],
             "Resource": "arn:aws:ecr:*:${local.account_id}:repository/*"
         },
