@@ -112,7 +112,7 @@ resource "random_password" "aurora_mysql_master_password" {
 ################################################################################
 
 resource "aws_secretsmanager_secret" "aurora_secretmanager_secret" {
-  name = "${var.environment}-aurora-secret-manager-${random_id.random_id.hex}"
+  name = "${var.environment}-aurora-rds-secret-manager-${random_id.random_id.hex}"
 }
 
 
@@ -141,11 +141,11 @@ module "aurora" {
   name           = "${var.environment}-rds-db"
   engine         = var.aurora_engine
   engine_version = var.aurora_engine_version
-  instance_class = var.aurora_instance_class
   instances = {
     1 = {
       identifier          = "${var.db_name}-${var.environment}-rds"
       publicly_accessible = false
+      instance_class      = var.aurora_instance_class
     }
   }
 
