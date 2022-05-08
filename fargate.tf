@@ -32,11 +32,23 @@ module "ecs-fargate" {
     }
   ]
 
+  task_container_environment = {
 
-  tags = {
-    Environment = "test"
-    Project     = "Test"
+    # aurora mysql env vars
+    DB_TYPE             = "mysqldb"
+    DB_MYSQLDB_DATABASE = var.db_name
+    DB_MYSQLDB_HOST     = module.aurora.cluster_endpoint
+    DB_MYSQLDB_PORT     = module.aurora.cluster_port
+    DB_MYSQLDB_USER     = "admin"
+    DB_MYSQLDB_PASSWORD = random_password.aurora_mysql_master_password.result
+
+    # elasticcache redis env vars
+
+
   }
+
+
+  tags = merge(local.common_tags, {})
 
   depends_on = [
     module.alb
