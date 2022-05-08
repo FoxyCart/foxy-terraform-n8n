@@ -140,6 +140,7 @@ module "aurora" {
 
   name           = "${var.environment}-rds-db"
   engine         = var.aurora_engine
+  database_name  = var.db_name
   engine_version = var.aurora_engine_version
   instances = {
     1 = {

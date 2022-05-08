@@ -20,8 +20,9 @@ module "ecs-fargate" {
   task_container_assign_public_ip = false
 
   health_check = {
-    port = "traffic-port"
-    path = "/"
+    matcher = "200-401"
+    port    = "traffic-port"
+    path    = "/setup"
   }
 
   target_groups = [
