@@ -273,13 +273,13 @@ module "redis" {
   source  = "umotif-public/elasticache-redis/aws"
   version = "3.0.0"
 
-  name_prefix        = "${var.environment}-redis-clustere"
+  name_prefix        = "${var.environment}-redis-cluster"
   num_cache_clusters = 2
   node_type          = "cache.t3.small"
 
   cluster_mode_enabled    = true
   replicas_per_node_group = 1
-  num_node_groups         = 1
+  num_node_groups         = 2
 
   engine_version           = "6.x"
   port                     = 6379
