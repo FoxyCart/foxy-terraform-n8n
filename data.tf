@@ -9,3 +9,4 @@ data "aws_ami" "amazon_linux_2" {
   owners      = ["amazon"]
   name_regex  = "amzn2-ami-hvm*"
 }
+

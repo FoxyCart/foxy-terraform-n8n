@@ -9,6 +9,15 @@ module "mysql_security_group" {
   auto_ingress_with_self = []
   ingress_cidr_blocks    = [module.vpc.vpc_cidr_block]
 
+  ingress_with_source_security_group_id = [
+    {
+      rule                     = "mysql-tcp"
+      source_security_group_id = module.ecs-fargate.service_sg_id
+
+    }
+  ]
+
+
 
   tags = merge(local.common_tags, {})
 
@@ -26,6 +35,13 @@ module "redis_security_group" {
   auto_ingress_with_self = []
   ingress_cidr_blocks    = [module.vpc.vpc_cidr_block]
 
+  ingress_with_source_security_group_id = [
+    {
+      rule                     = "redis-tcp"
+      source_security_group_id = module.ecs-fargate.service_sg_id
+
+    }
+  ]
   tags = merge(local.common_tags, {})
 }
 

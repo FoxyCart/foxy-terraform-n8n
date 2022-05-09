@@ -49,21 +49,21 @@ variable "db_name" {
 
 variable "aurora_engine_version" {
   description = "Database engine version"
-  default     = "5.7.34"
+  default     = "5.7.12"
   type        = string
 }
 
 
 variable "aurora_instance_class" {
   description = "Instance class for the database"
-  default     = "db.t2.small"
+  default     = "db.r5.large"
   type        = string
 }
 
 variable "aurora_engine" {
   description = "The database engine type"
   type        = string
-  default     = "mysql"
+  default     = "aurora-mysql"
 }
 
 

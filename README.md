@@ -8,3 +8,5 @@
 * CodeBuild outputting to ECR.
 * CodeDeploy pushing to…
 * ECS + Fargate
+
+[n8n env variables](https://docs.n8n.io/hosting/environment-variables/#queues) 

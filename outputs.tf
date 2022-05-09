@@ -16,3 +16,9 @@ output "ecr_name" {
   value = split("/", aws_ecr_repository.n8n_ecr.arn)[1]
 
 }
+
+output "redis_primary" {
+  description = "Redis Primary"
+  value       = module.redis.elasticache_replication_group_primary_endpoint_address
+
+}

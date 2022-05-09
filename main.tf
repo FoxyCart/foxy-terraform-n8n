@@ -112,7 +112,7 @@ resource "random_password" "aurora_mysql_master_password" {
 ################################################################################
 
 resource "aws_secretsmanager_secret" "aurora_secretmanager_secret" {
-  name = "${var.environment}-aurora-secret-manager-${random_id.random_id.hex}"
+  name = "${var.environment}-aurora-rds-secret-manager-${random_id.random_id.hex}"
 }
 
 
@@ -140,12 +140,13 @@ module "aurora" {
 
   name           = "${var.environment}-rds-db"
   engine         = var.aurora_engine
+  database_name  = var.db_name
   engine_version = var.aurora_engine_version
-  instance_class = var.aurora_instance_class
   instances = {
     1 = {
       identifier          = "${var.db_name}-${var.environment}-rds"
       publicly_accessible = false
+      instance_class      = var.aurora_instance_class
     }
   }
 
@@ -272,13 +273,13 @@ module "redis" {
   source  = "umotif-public/elasticache-redis/aws"
   version = "3.0.0"
 
-  name_prefix        = "${var.environment}-redis-clustere"
+  name_prefix        = "${var.environment}-redis-cluster"
   num_cache_clusters = 2
   node_type          = "cache.t3.small"
 
   cluster_mode_enabled    = true
   replicas_per_node_group = 1
-  num_node_groups         = 1
+  num_node_groups         = 2
 
   engine_version           = "6.x"
   port                     = 6379

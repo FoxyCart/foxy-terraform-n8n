@@ -63,7 +63,7 @@ resource "aws_codebuild_project" "n8n_codebuild_project" {
     environment_variable {
       name  = "ECS_SERVICE_NAME"
       value = module.ecs-fargate.service_name
-      type  = PLAINTEXT
+      type  = "PLAINTEXT"
     }
 
 
