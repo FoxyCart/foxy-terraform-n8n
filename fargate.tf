@@ -44,7 +44,7 @@ module "ecs-fargate" {
     DB_MYSQLDB_USER     = "admin"
     DB_MYSQLDB_PASSWORD = random_password.aurora_mysql_master_password.result
 
-    # elasticcache redis env vars
+    # elasticache redis env vars
     QUEUE_BULL_PREFIX                  = "n8n"
     QUEUE_BULL_REDIS_DB                = "0"
     QUEUE_BULL_REDIS_HOST              = module.redis.elasticache_replication_group_primary_endpoint_address
