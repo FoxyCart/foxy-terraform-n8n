@@ -26,15 +26,12 @@ variable "public_subnet_cidr_list" {
   description = "List of Public Subnet CIDR"
   type        = list(string)
   default     = ["10.0.101.0/24", "10.0.102.0/24", ]
-
 }
 
 variable "database_subnet_cidr_list" {
   description = "List of Databse Subnet CIDR"
   type        = list(string)
   default     = ["10.0.3.0/24", "10.0.103.0/24"]
-
-
 }
 
 
@@ -49,14 +46,14 @@ variable "db_name" {
 
 variable "aurora_engine_version" {
   description = "Database engine version"
-  default     = "5.7.12"
+  default     = "8.0"
   type        = string
 }
 
 
 variable "aurora_instance_class" {
   description = "Instance class for the database"
-  default     = "db.r5.large"
+  default     = "db.t3.small"
   type        = string
 }
 
@@ -95,5 +92,4 @@ variable "source_repository" {
   description = "Project Repository URL"
   default     = "https://github.com/FoxyCart/foxy-terraform-n8n"
   type        = string
-
 }

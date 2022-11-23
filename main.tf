@@ -97,7 +97,7 @@ resource "aws_vpc_endpoint" "s3_gateway" {
 
 
 ################################################################################
-# MySQL Aurora 
+# MySQL Aurora
 ################################################################################
 resource "random_password" "aurora_mysql_master_password" {
   length           = 24
@@ -138,17 +138,19 @@ module "aurora" {
   source  = "terraform-aws-modules/rds-aurora/aws"
   version = "~> 6.0"
 
-  name           = "${var.environment}-rds-db"
-  engine         = var.aurora_engine
-  database_name  = var.db_name
-  engine_version = var.aurora_engine_version
-  instances = {
-    1 = {
-      identifier          = "${var.db_name}-${var.environment}-rds"
-      publicly_accessible = false
-      instance_class      = var.aurora_instance_class
-    }
-  }
+  name           = "${var.db_name}-${var.environment}"
+
+  engine            = "aurora-mysql"
+  engine_mode       = "provisioned"
+  engine_version    = "8.0.mysql_aurora.3.02.0"
+  storage_encrypted = true
+
+  instance_class = "db.serverless"
+
+  /* serverlessv2_scaling_configuration = {
+    min_capacity = 1
+    max_capacity = 2
+  } */
 
   vpc_id                 = module.vpc.vpc_id
   create_db_subnet_group = false
@@ -314,7 +316,7 @@ module "redis" {
 
 
 ################################################################################
-# Application Load Balancer 
+# Application Load Balancer
 ################################################################################
 module "alb" {
   source  = "terraform-aws-modules/alb/aws"

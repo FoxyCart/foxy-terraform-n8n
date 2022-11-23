@@ -9,4 +9,10 @@
 * CodeDeploy pushing to…
 * ECS + Fargate
 
-[n8n env variables](https://docs.n8n.io/hosting/environment-variables/#queues) 
+[n8n env variables](https://docs.n8n.io/hosting/environment-variables/#queues)
+
+## Deploying
+
+```
+terraform apply -input=false -var-file=env/stage.tfvars
+```
