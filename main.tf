@@ -184,17 +184,17 @@ module "aurora" {
 }
 
 resource "aws_db_parameter_group" "db_parameter_group" {
-  name        = "${var.environment}-aurora-57-db-parameter-group"
-  family      = "aurora-mysql5.7"
-  description = "${var.environment}-aurora-57-db-parameter-group"
+  name        = "${var.environment}-aurora-80-db-parameter-group"
+  family      = "aurora-mysql8.0"
+  description = "${var.environment}-aurora-80-db-parameter-group"
 
   tags = merge(local.common_tags, {})
 }
 
 resource "aws_rds_cluster_parameter_group" "db_parameter_group" {
-  name        = "${var.environment}-aurora-57-cluster-parameter-group"
-  family      = "aurora-mysql5.7"
-  description = "${var.environment}-aurora-57-cluster-parameter-group"
+  name        = "${var.environment}-aurora-80-cluster-parameter-group"
+  family      = "aurora-mysql8.0"
+  description = "${var.environment}-aurora-80-cluster-parameter-group"
 
   parameter {
     name  = "character_set_server"
