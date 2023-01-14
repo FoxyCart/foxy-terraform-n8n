@@ -185,8 +185,8 @@ module "aurora" {
 
 # Create a second database, in addition to the "initial_db" created
 # by the aws_db_instance resource above.
-resource "mysql_database" "app" {
-  name = "foxy-n8n"
+resource "mysql_database" "db_name" {
+  name = var.db_name
 }
 
 resource "aws_db_parameter_group" "db_parameter_group" {
