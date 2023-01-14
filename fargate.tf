@@ -23,7 +23,7 @@ module "ecs-fargate" {
   health_check = {
     matcher = "200-401"
     port    = "traffic-port"
-    path    = "/setup"
+    path    = "/healthz"
   }
 
   target_groups = [
@@ -52,8 +52,6 @@ module "ecs-fargate" {
     QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD = "1000" #seconds
     QUEUE_RECOVERY_INTERVAL            = "60"   #seconds
 
-
-
   }
 
 
@@ -61,6 +59,7 @@ module "ecs-fargate" {
 
   depends_on = [
     module.alb,
+    module.aurora,
     module.redis
   ]
 

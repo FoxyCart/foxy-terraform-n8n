@@ -183,6 +183,12 @@ module "aurora" {
   tags = merge(local.common_tags, {})
 }
 
+# Create a second database, in addition to the "initial_db" created
+# by the aws_db_instance resource above.
+resource "mysql_database" "app" {
+  name = "foxy-n8n"
+}
+
 resource "aws_db_parameter_group" "db_parameter_group" {
   name        = "${var.environment}-aurora-80-db-parameter-group"
   family      = "aurora-mysql8.0"
