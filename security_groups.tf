@@ -17,10 +17,7 @@ module "mysql_security_group" {
     }
   ]
 
-
-
   tags = merge(local.common_tags, {})
-
 }
 
 
@@ -72,3 +69,37 @@ resource "aws_security_group_rule" "test_sg_ingress" {
   to_port                  = 5678
   source_security_group_id = module.ecs-fargate.service_sg_id
 }
+
+
+module "bastion_security_group" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> 4.0"
+
+  name        = "${var.environment}-bastion-ingress"
+  description = "Allow Foxy VPN IPs to access the bastion host"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress_cidr_blocks = ["44.232.11.152/32", "3.130.104.72/32"]
+  ingress_rules       = ["ssh-tcp"]
+  egress_rules        = ["all-all"]
+
+
+  tags = merge(local.common_tags, {})
+}
+
+
+/* resource "aws_security_group" "bastion_ingress" {
+  name = "bastion-ingress"
+  vpc_id = module.vpc.vpc_id
+  tags = merge(local.common_tags, {
+    Name = "bastion-ingres"
+  })
+
+  ingress {
+    description      = "Foxy VPN"
+    from_port        = 22
+    to_port          = 22
+    protocol         = "-1"
+    cidr_blocks      = ["3.66.233.223/32", "3.130.104.72/32"]
+  }
+} */

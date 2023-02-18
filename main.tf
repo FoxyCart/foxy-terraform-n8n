@@ -108,19 +108,14 @@ resource "random_password" "aurora_mysql_master_password" {
   override_special = "$"
 }
 
-
-################################################################################
-
 resource "aws_secretsmanager_secret" "aurora_secretmanager_secret" {
   name = "${var.environment}-aurora-rds-secret-manager-${random_id.random_id.hex}"
 }
-
 
 resource "aws_secretsmanager_secret_version" "aurora_secretmanager_secret_value" {
   secret_id     = aws_secretsmanager_secret.aurora_secretmanager_secret.id
   secret_string = random_password.aurora_mysql_master_password.result
 }
-
 
 resource "aws_ssm_parameter" "aurora_ssm_parameter" {
   name        = "/${var.environment}/AURORAMYSQL/MasterPassword"
@@ -136,21 +131,26 @@ resource "aws_ssm_parameter" "aurora_ssm_parameter" {
 # ################################################################################
 module "aurora" {
   source  = "terraform-aws-modules/rds-aurora/aws"
-  version = "~> 6.0"
+  version = "~>7.0"
 
   name           = "${var.db_name}-${var.environment}"
 
-  engine            = "aurora-mysql"
-  engine_mode       = "provisioned"
-  engine_version    = "8.0.mysql_aurora.3.02.0"
-  storage_encrypted = true
+  engine                      = "aurora-mysql"
+  engine_mode                 = "provisioned"
+  engine_version              = "8.0.mysql_aurora.3.02.2"
+  auto_minor_version_upgrade	= true
+  storage_encrypted           = true
 
   instance_class = "db.serverless"
 
-  /* serverlessv2_scaling_configuration = {
-    min_capacity = 1
+  autoscaling_enabled      = true
+  serverlessv2_scaling_configuration = {
+    min_capacity = ".5"
     max_capacity = 2
-  } */
+  }
+  instances = {
+    one   = {}
+  }
 
   vpc_id                 = module.vpc.vpc_id
   create_db_subnet_group = false
@@ -181,12 +181,6 @@ module "aurora" {
   skip_final_snapshot             = true
 
   tags = merge(local.common_tags, {})
-}
-
-# Create a second database, in addition to the "initial_db" created
-# by the aws_db_instance resource above.
-resource "mysql_database" "db_name" {
-  name = var.db_name
 }
 
 resource "aws_db_parameter_group" "db_parameter_group" {
@@ -352,5 +346,17 @@ resource "aws_lb_listener" "alb_80" {
 
   tags = merge(local.common_tags, {})
 }
+/* resource "aws_lb_listener" "alb_443" {
+  load_balancer_arn = module.alb.lb_arn
+  port              = "443"
+  protocol          = "HTTPS"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = module.ecs-fargate.target_group_arn[0]
+  }
+
+  tags = merge(local.common_tags, {})
+} */
 
 

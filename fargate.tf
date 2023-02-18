@@ -12,9 +12,15 @@ module "ecs-fargate" {
 
   #task_container_image = "${local.account_id}.dkr.ecr.${local.region}.amazonaws.com/${aws_ecr_repository.n8n_ecr.name}:latest"
   task_container_image   = "n8nio/n8n:latest"
-  task_definition_cpu    = 256
-  task_definition_memory = 512
+  task_definition_cpu    = 1024
+  task_definition_memory = 4096
   load_balanced          = true
+
+  /* lifecycle {
+    ignore_changes = [
+      task_definition
+    ]
+  } */
 
 
   task_container_port             = 5678
